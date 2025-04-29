@@ -18,8 +18,6 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
 
   const formatValue = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
       signDisplay: 'never',
       maximumFractionDigits: 2,
       minimumFractionDigits: 2
@@ -68,7 +66,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
     }, 0);
   };
 
-  const renderConta = (conta: ContaCalculada, nivel: number = 0) => {
+  const renderConta = (conta: ContaCalculada, nivel: number = 0, isEven: boolean = false) => {
     if (!conta.visivel) return null;
 
     const hasChildren = conta.contas_filhas && conta.contas_filhas.length > 0;
@@ -76,8 +74,8 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
 
     return (
       <React.Fragment key={conta.id}>
-        <tr className="border-b border-gray-700">
-          <td className="p-2 sticky left-0 bg-gray-800 z-10 whitespace-nowrap" style={{ paddingLeft: `${nivel * 2 + 1}rem` }}>
+        <tr className={`border-b border-gray-700 ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`}>
+          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`} style={{ paddingLeft: `${nivel * 2 + 1}rem` }}>
             <div className="flex items-center gap-2">
               {hasChildren ? (
                 <button
@@ -111,7 +109,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
           </td>
         </tr>
         {hasChildren && isExpanded && (
-          conta.contas_filhas.map(contaFilha => renderConta(contaFilha, nivel + 1))
+          conta.contas_filhas.map((contaFilha, index) => renderConta(contaFilha, nivel + 1, !isEven))
         )}
       </React.Fragment>
     );
@@ -135,7 +133,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
             </tr>
           </thead>
           <tbody>
-            {contas.map(conta => renderConta(conta))}
+            {contas.map((conta, index) => renderConta(conta, 0, index % 2 === 0))}
           </tbody>
         </table>
       </div>
