@@ -21,6 +21,7 @@ const DrePage: React.FC = () => {
   const [contasCalculadas, setContasCalculadas] = useState<ContaCalculada[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showVariation, setShowVariation] = useState(false);
 
   const { data: empresas } = useSupabaseQuery<Empresa>({
     query: () => supabase
@@ -211,9 +212,11 @@ const DrePage: React.FC = () => {
         selectedYear={selectedYear}
         selectedMonth={selectedMonth}
         empresas={empresas}
+        showVariation={showVariation}
         onEmpresaChange={setSelectedEmpresa}
         onYearChange={setSelectedYear}
         onMonthChange={setSelectedMonth}
+        onToggleVariation={() => setShowVariation(!showVariation)}
       />
 
       <div className="overflow-auto">
@@ -225,6 +228,7 @@ const DrePage: React.FC = () => {
           <DreReport 
             contas={contasCalculadas} 
             meses={getMesesVisualizacao()}
+            showVariation={showVariation}
           />
         )}
       </div>

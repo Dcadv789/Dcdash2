@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { DreConfiguracao } from '../../types/database';
 
 interface ContaCalculada extends DreConfiguracao {
@@ -11,9 +11,10 @@ interface ContaCalculada extends DreConfiguracao {
 interface DreReportProps {
   contas: ContaCalculada[];
   meses: { mes: number; ano: number }[];
+  showVariation?: boolean;
 }
 
-const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
+const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = false }) => {
   const [expandedContas, setExpandedContas] = useState<Set<string>>(new Set());
 
   const formatValue = (value: number) => {
@@ -22,6 +23,14 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
       maximumFractionDigits: 2,
       minimumFractionDigits: 2
     }).format(Math.abs(value));
+  };
+
+  const formatVariation = (variation: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      signDisplay: 'always',
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2
+    }).format(variation);
   };
 
   const getMonthName = (month: number) => {
@@ -55,6 +64,19 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
     }, 0);
   };
 
+  const calcularVariacao = (conta: ContaCalculada, mesAtual: number, anoAtual: number): number => {
+    const periodoAtual = `${anoAtual}-${mesAtual}`;
+    const valorAtual = calcularValorConta(conta, periodoAtual);
+
+    const mesAnterior = mesAtual === 1 ? 12 : mesAtual - 1;
+    const anoAnterior = mesAtual === 1 ? anoAtual - 1 : anoAtual;
+    const periodoAnterior = `${anoAnterior}-${mesAnterior}`;
+    const valorAnterior = calcularValorConta(conta, periodoAnterior);
+
+    if (valorAnterior === 0) return 0;
+    return ((valorAtual - valorAnterior) / Math.abs(valorAnterior)) * 100;
+  };
+
   const calcularTotal12Meses = (conta: ContaCalculada): number => {
     if (!conta.contas_filhas || conta.contas_filhas.length === 0) {
       return conta.total12Meses;
@@ -75,7 +97,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
     return (
       <React.Fragment key={conta.id}>
         <tr className={`border-b border-gray-700 ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`}>
-          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`} style={{ paddingLeft: `${nivel * 2 + 1}rem` }}>
+          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
             <div className="flex items-center gap-2">
               {hasChildren ? (
                 <button
@@ -94,12 +116,30 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
           {meses.map(({ mes, ano }) => {
             const periodo = `${ano}-${mes}`;
             const valor = calcularValorConta(conta, periodo);
+            const variacao = calcularVariacao(conta, mes, ano);
+
             return (
-              <td key={`${ano}-${mes}`} className="p-2 text-right whitespace-nowrap">
-                <span className={`font-mono ${valor >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                  {formatValue(valor)}
-                </span>
-              </td>
+              <React.Fragment key={`${ano}-${mes}`}>
+                <td className="p-2 text-right whitespace-nowrap">
+                  <span className={`font-mono ${valor >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {formatValue(valor)}
+                  </span>
+                </td>
+                {showVariation && (
+                  <td className="p-2 text-right whitespace-nowrap">
+                    <div className={`flex items-center justify-end gap-1 ${
+                      variacao >= 0 ? 'text-green-400' : 'text-red-400'
+                    }`}>
+                      {variacao >= 0 ? (
+                        <ArrowUpRight size={16} />
+                      ) : (
+                        <ArrowDownRight size={16} />
+                      )}
+                      <span className="font-mono">{formatVariation(variacao)}%</span>
+                    </div>
+                  </td>
+                )}
+              </React.Fragment>
             );
           })}
           <td className="p-2 text-right whitespace-nowrap bg-gray-700/50">
@@ -121,11 +161,18 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses }) => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-700">
-              <th className="text-left p-2 sticky left-0 bg-gray-800 z-10 whitespace-nowrap text-gray-400">Conta</th>
+              <th className="text-left p-2 pl-8 sticky left-0 bg-gray-800 z-10 whitespace-nowrap text-gray-400">Conta</th>
               {meses.map(({ mes, ano }) => (
-                <th key={`${ano}-${mes}`} className="text-right p-2 text-gray-400 whitespace-nowrap">
-                  {getMonthName(mes)}/{String(ano).slice(2)}
-                </th>
+                <React.Fragment key={`${ano}-${mes}`}>
+                  <th className="text-right p-2 text-gray-400 whitespace-nowrap">
+                    {getMonthName(mes)}/{String(ano).slice(2)}
+                  </th>
+                  {showVariation && (
+                    <th className="text-right p-2 text-gray-400 whitespace-nowrap">
+                      Var %
+                    </th>
+                  )}
+                </React.Fragment>
               ))}
               <th className="text-right p-2 text-gray-400 whitespace-nowrap bg-gray-700/50">
                 Total 12M
