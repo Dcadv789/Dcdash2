@@ -27,10 +27,10 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
 
   const formatVariation = (variation: number) => {
     return new Intl.NumberFormat('pt-BR', {
-      signDisplay: 'always',
+      signDisplay: 'never',
       maximumFractionDigits: 2,
       minimumFractionDigits: 2
-    }).format(variation);
+    }).format(Math.abs(variation));
   };
 
   const getMonthName = (month: number) => {
@@ -96,8 +96,8 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
 
     return (
       <React.Fragment key={conta.id}>
-        <tr className={`${isEven ? 'bg-gray-800/30' : ''}`}>
-          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/30' : ''}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
+        <tr className={`${isEven ? 'bg-gray-800/10' : ''}`}>
+          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/10' : 'bg-black'}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
             <div className="flex items-center gap-2">
               {hasChildren ? (
                 <button
@@ -154,7 +154,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
         <table className="w-full">
           <thead>
             <tr>
-              <th className="text-left p-2 pl-8 sticky left-0 z-10 whitespace-nowrap text-gray-400">Conta</th>
+              <th className="text-left p-2 pl-8 sticky left-0 z-10 bg-black whitespace-nowrap text-gray-400">Conta</th>
               {meses.map(({ mes, ano }) => (
                 <React.Fragment key={`${ano}-${mes}`}>
                   <th className="text-right p-2 text-gray-400 whitespace-nowrap">
