@@ -97,7 +97,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
     return (
       <React.Fragment key={conta.id}>
         <tr className={`${isEven ? 'bg-gray-800/10' : ''}`}>
-          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/10' : 'bg-black'}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
+          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-black/90' : 'bg-black/90'}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
             <div className="flex items-center gap-2">
               {hasChildren ? (
                 <button
