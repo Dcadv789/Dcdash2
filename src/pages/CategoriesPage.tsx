@@ -28,7 +28,7 @@ const CategoriesPage: React.FC = () => {
       .order('razao_social'),
   });
 
-  const { data: grupos, refetch: refetchGrupos } = useSupabaseQuery<GrupoCategoria>({
+  const { data: grupos } = useSupabaseQuery<GrupoCategoria>({
     query: () => supabase
       .from('grupo_categorias')
       .select('*')
@@ -58,9 +58,11 @@ const CategoriesPage: React.FC = () => {
           .select('categoria_id')
           .eq('empresa_id', selectedEmpresa);
 
-        if (empresaCategorias && empresaCategorias.length > 0) {
+        if (empresaCategorias) {
           const categoriaIds = empresaCategorias.map(ec => ec.categoria_id);
-          query = query.in('id', categoriaIds);
+          if (categoriaIds.length > 0) {
+            query = query.in('id', categoriaIds);
+          }
         }
       }
 
@@ -134,7 +136,6 @@ const CategoriesPage: React.FC = () => {
         .eq('id', group.id);
 
       if (error) throw error;
-      refetchGrupos();
       refetch();
     } catch (err) {
       console.error('Erro ao excluir grupo:', err);
@@ -150,7 +151,7 @@ const CategoriesPage: React.FC = () => {
         .eq('id', group.id);
 
       if (error) throw error;
-      refetchGrupos();
+      refetch();
     } catch (err) {
       console.error('Erro ao atualizar grupo:', err);
       alert('Não foi possível atualizar o grupo');
@@ -184,16 +185,6 @@ const CategoriesPage: React.FC = () => {
             <td className="p-4">
               <div className="flex justify-end gap-2">
                 <button
-                  onClick={() => {
-                    setSelectedCategory(categoria);
-                    setIsCategoryModalOpen(true);
-                  }}
-                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
-                  title="Editar"
-                >
-                  <Pencil size={18} />
-                </button>
-                <button
                   onClick={() => handleToggleActive(categoria)}
                   className={`p-2 rounded-lg ${
                     categoria.ativo 
@@ -203,6 +194,16 @@ const CategoriesPage: React.FC = () => {
                   title={categoria.ativo ? 'Desativar' : 'Ativar'}
                 >
                   <Power size={18} />
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedCategory(categoria);
+                    setIsCategoryModalOpen(true);
+                  }}
+                  className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg"
+                  title="Editar"
+                >
+                  <Pencil size={18} />
                 </button>
                 <button
                   onClick={() => handleDelete(categoria)}
@@ -309,10 +310,7 @@ const CategoriesPage: React.FC = () => {
             setSelectedGroup(undefined);
             setIsGroupModalOpen(false);
           }}
-          onSave={() => {
-            refetchGrupos();
-            refetch();
-          }}
+          onSave={refetch}
         />
       )}
     </div>
