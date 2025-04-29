@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { DreConfiguracao } from '../../types/database';
 
 interface ContaCalculada extends DreConfiguracao {
@@ -96,8 +96,8 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
 
     return (
       <React.Fragment key={conta.id}>
-        <tr className={`border-b border-gray-700 ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`}>
-          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/30' : 'bg-gray-800'}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
+        <tr className={`${isEven ? 'bg-gray-800/30' : ''}`}>
+          <td className={`p-2 sticky left-0 z-10 whitespace-nowrap ${isEven ? 'bg-gray-800/30' : ''}`} style={{ paddingLeft: `${nivel * 2 + 2}rem` }}>
             <div className="flex items-center gap-2">
               {hasChildren ? (
                 <button
@@ -127,22 +127,15 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
                 </td>
                 {showVariation && (
                   <td className="p-2 text-right whitespace-nowrap">
-                    <div className={`flex items-center justify-end gap-1 ${
-                      variacao >= 0 ? 'text-green-400' : 'text-red-400'
-                    }`}>
-                      {variacao >= 0 ? (
-                        <ArrowUpRight size={16} />
-                      ) : (
-                        <ArrowDownRight size={16} />
-                      )}
-                      <span className="font-mono">{formatVariation(variacao)}%</span>
-                    </div>
+                    <span className={`font-mono ${variacao >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {formatVariation(variacao)}%
+                    </span>
                   </td>
                 )}
               </React.Fragment>
             );
           })}
-          <td className="p-2 text-right whitespace-nowrap bg-gray-700/50">
+          <td className="p-2 text-right whitespace-nowrap">
             <span className={`font-mono font-medium ${calcularTotal12Meses(conta) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
               {formatValue(calcularTotal12Meses(conta))}
             </span>
@@ -156,12 +149,12 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
   };
 
   return (
-    <div className="bg-gray-800 rounded-xl overflow-hidden">
+    <div className="rounded-xl overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-gray-700">
-              <th className="text-left p-2 pl-8 sticky left-0 bg-gray-800 z-10 whitespace-nowrap text-gray-400">Conta</th>
+            <tr>
+              <th className="text-left p-2 pl-8 sticky left-0 z-10 whitespace-nowrap text-gray-400">Conta</th>
               {meses.map(({ mes, ano }) => (
                 <React.Fragment key={`${ano}-${mes}`}>
                   <th className="text-right p-2 text-gray-400 whitespace-nowrap">
@@ -174,7 +167,7 @@ const DreReport: React.FC<DreReportProps> = ({ contas, meses, showVariation = fa
                   )}
                 </React.Fragment>
               ))}
-              <th className="text-right p-2 text-gray-400 whitespace-nowrap bg-gray-700/50">
+              <th className="text-right p-2 text-gray-400 whitespace-nowrap">
                 Total 12M
               </th>
             </tr>
