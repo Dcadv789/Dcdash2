@@ -84,7 +84,6 @@ const DreConfigPage: React.FC = () => {
     dependencies: [searchTerm],
   });
 
-  // Filtrar contas baseado na empresa selecionada
   useEffect(() => {
     if (!contas) return;
 
@@ -103,12 +102,10 @@ const DreConfigPage: React.FC = () => {
     const contasMap = new Map<string, ContaHierarquica>();
     const contasRaiz: ContaHierarquica[] = [];
 
-    // Primeiro, criar todas as contas com nível 0
     contas.forEach(conta => {
       contasMap.set(conta.id, { ...conta, contas_filhas: [], nivel: 0 });
     });
 
-    // Depois, organizar a hierarquia
     contas.forEach(conta => {
       const contaAtual = contasMap.get(conta.id)!;
       
@@ -128,7 +125,6 @@ const DreConfigPage: React.FC = () => {
       }
     });
 
-    // Ordenar contas raiz e contas filhas recursivamente
     const ordenarContas = (contas: ContaHierarquica[]) => {
       contas.sort((a, b) => a.ordem - b.ordem);
       contas.forEach(conta => {
@@ -321,7 +317,7 @@ const DreConfigPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-[3] bg-gray-800 rounded-xl p-6">
+      <div className="flex-[3] bg-gray-800 rounded-xl p-6 flex flex-col">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-medium text-white">
             {selectedConta ? 'Componentes' : 'Selecione uma conta'}
@@ -337,12 +333,14 @@ const DreConfigPage: React.FC = () => {
           )}
         </div>
 
-        <DreAccountDetails
-          selectedConta={selectedConta}
-          componentes={componentes}
-          loadingComponentes={loadingComponentes}
-          onManageComponents={() => setIsComponentsModalOpen(true)}
-        />
+        <div className="flex-1 overflow-auto">
+          <DreAccountDetails
+            selectedConta={selectedConta}
+            componentes={componentes}
+            loadingComponentes={loadingComponentes}
+            onManageComponents={() => setIsComponentsModalOpen(true)}
+          />
+        </div>
       </div>
 
       {isModalOpen && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { DreConfiguracao } from '../../types/database';
 import { supabase } from '../../lib/supabase';
 import { Button } from '../shared/Button';
@@ -21,6 +21,7 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
   const [componentes, setComponentes] = useState<any[]>([]);
   const [categorias, setCategorias] = useState<any[]>([]);
   const [indicadores, setIndicadores] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -28,27 +29,23 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
 
   const fetchData = async () => {
     try {
-      // Buscar componentes existentes
-      const { data: componentesData } = await supabase
-        .from('dre_conta_componentes')
-        .select(`
-          id,
-          simbolo,
-          categoria:categorias (
-            id,
-            nome,
-            codigo
-          ),
-          indicador:indicadores (
-            id,
-            nome,
-            codigo
-          )
-        `)
-        .eq('conta_id', conta.id);
-
-      // Buscar categorias e indicadores disponíveis
-      const [categoriasRes, indicadoresRes] = await Promise.all([
+      const [{ data: componentesData }, { data: categoriasData }, { data: indicadoresData }] = await Promise.all([
+        supabase
+          .from('dre_conta_componentes')
+          .select(`
+            *,
+            categoria:categorias (
+              id,
+              nome,
+              codigo
+            ),
+            indicador:indicadores (
+              id,
+              nome,
+              codigo
+            )
+          `)
+          .eq('conta_id', conta.id),
         supabase
           .from('categorias')
           .select('*')
@@ -62,8 +59,8 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
       ]);
 
       if (componentesData) setComponentes(componentesData);
-      if (categoriasRes.data) setCategorias(categoriasRes.data);
-      if (indicadoresRes.data) setIndicadores(indicadoresRes.data);
+      if (categoriasData) setCategorias(categoriasData);
+      if (indicadoresData) setIndicadores(indicadoresData);
     } catch (err) {
       console.error('Erro ao carregar dados:', err);
       setError('Erro ao carregar dados necessários');
@@ -73,13 +70,11 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Remover componentes existentes
       await supabase
         .from('dre_conta_componentes')
         .delete()
         .eq('conta_id', conta.id);
 
-      // Inserir novos componentes
       if (componentes.length > 0) {
         const { error } = await supabase
           .from('dre_conta_componentes')
@@ -104,6 +99,16 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
       setLoading(false);
     }
   };
+
+  const filteredCategorias = categorias.filter(cat => 
+    cat.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cat.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredIndicadores = indicadores.filter(ind => 
+    ind.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ind.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const addComponente = (tipo: 'categoria' | 'indicador', item: any) => {
     setComponentes(prev => [...prev, {
@@ -136,12 +141,25 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
           </div>
         )}
 
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search size={18} className="text-gray-500" />
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar por nome ou código..."
+            className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           {/* Categorias */}
           <div className="bg-gray-700 rounded-lg p-4">
             <h4 className="text-sm font-medium text-gray-400 mb-3">Categorias Disponíveis</h4>
             <div className="h-48 overflow-y-auto pr-2">
-              {categorias.map(categoria => (
+              {filteredCategorias.map(categoria => (
                 <button
                   key={categoria.id}
                   onClick={() => addComponente('categoria', categoria)}
@@ -159,7 +177,7 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
           <div className="bg-gray-700 rounded-lg p-4">
             <h4 className="text-sm font-medium text-gray-400 mb-3">Indicadores Disponíveis</h4>
             <div className="h-48 overflow-y-auto pr-2">
-              {indicadores.map(indicador => (
+              {filteredIndicadores.map(indicador => (
                 <button
                   key={indicador.id}
                   onClick={() => addComponente('indicador', indicador)}
@@ -207,7 +225,7 @@ const DreComponentsModal: React.FC<DreComponentsModalProps> = ({
                     onClick={() => removeComponente(index)}
                     className="text-gray-400 hover:text-red-400 p-1 rounded hover:bg-gray-500"
                   >
-                    ×
+                    <X size={18} />
                   </button>
                 </div>
               ))}
